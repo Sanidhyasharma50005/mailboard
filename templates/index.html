@@ -867,6 +867,31 @@
 
   <script>
     const CATEGORIES = ["Urgent", "Important", "Updates", "Promotions", "Spam", "Other"];
+    
+    // Built-in sample emails for demo mode and live web prototypes
+    const FALLBACK_DEMO_EMAILS = [
+      { id: "demo-msg-01", sender_name: "Marcus Vance", sender_addr: "mvance@acmecorp.com", subject: "URGENT: Production outage on payment gateway", preview: "Please jump on the bridge immediately. Production transactions are failing and we need all hands right away.", date: "Today, 10:14 AM", category: "Urgent", why: "matched: urgent" },
+      { id: "demo-msg-02", sender_name: "Cloud Hosting Billing", sender_addr: "billing@cloudservices.io", subject: "Invoice #INV-2026-9921 Payment Due in 48 Hours", preview: "Your monthly cloud infrastructure invoice of $428.50 is now available. Payment due by midnight on November 25.", date: "Today, 09:30 AM", category: "Important", why: "matched: invoice" },
+      { id: "demo-msg-03", sender_name: "Stripe Security", sender_addr: "alerts@stripe.com", subject: "Your OTP verification code for login", preview: "Your one-time verification code is 849201. Use this code to complete your dashboard login safely.", date: "Today, 09:12 AM", category: "Updates", why: "matched: alerts" },
+      { id: "demo-msg-04", sender_name: "MegaDeals Direct", sender_addr: "deals@shoppingoutlet.com", subject: "Black Friday Early Access: 50% off all electronics!", preview: "Massive holiday season sale starting now. Grab up to 50% off laptops, headphones, and 4K monitors before stock runs out.", date: "Today, 08:45 AM", category: "Promotions", why: "has unsubscribe link" },
+      { id: "demo-msg-05", sender_name: "Global Millions Bureau", sender_addr: "claim@free-prize-notify.org", subject: "YOU ARE A WINNER! Claim your prize now", preview: "Congratulations! You have won $2,500,000 in the international rewards sweepstakes. Click here to claim your prize.", date: "Today, 08:05 AM", category: "Spam", why: "matched: winner" },
+      { id: "demo-msg-06", sender_name: "Alex Miller", sender_addr: "alex.miller@gmail.com", subject: "Weekend hiking trip at Blue Ridge", preview: "Hey! Are you still free this Saturday to go hiking? Let me know if you want to grab breakfast beforehand.", date: "Yesterday, 07:22 PM", category: "Other", why: "no rule matched" },
+      { id: "demo-msg-07", sender_name: "Alex Miller", sender_addr: "alex.miller@gmail.com", subject: "Photos from last week's concert", preview: "Here are the photos from Friday night! Let me know if you want me to share the high-resolution album.", date: "Yesterday, 07:25 PM", category: "Other", why: "no rule matched" },
+      { id: "demo-msg-08", sender_name: "Tech Recruiting", sender_addr: "talent@deepai-research.com", subject: "Interview invitation: Senior AI Systems Architect", preview: "We were very impressed by your background and would love to schedule an interview with our engineering leadership team.", date: "Yesterday, 05:40 PM", category: "Important", why: "matched: interview" },
+      { id: "demo-msg-09", sender_name: "Amazon Shipping", sender_addr: "shipment-tracking@amazon.com", subject: "Your order #112-9831201 has shipped", preview: "Good news! Your order containing Ergonomic Desk Chair has shipped and is scheduled to be delivered tomorrow by 8 PM.", date: "Yesterday, 04:15 PM", category: "Updates", why: "matched: your order" },
+      { id: "demo-msg-10", sender_name: "GitHub", sender_addr: "notifications@github.com", subject: "[GitHub] Pull Request #42: Add redis cache layer", preview: "octocat merged commit 7a8f12 into main. All 18 automated continuous integration checks passed successfully.", date: "Yesterday, 03:00 PM", category: "Updates", why: "matched: notifications" },
+      { id: "demo-msg-11", sender_name: "Academic Affairs", sender_addr: "registrar@stateuniversity.edu", subject: "Final Exam schedule and grade submission deadline", preview: "Please review the published semester exam timetable. Final grade assignment submission deadline is December 15.", date: "Yesterday, 01:20 PM", category: "Important", why: "matched: exam" },
+      { id: "demo-msg-12", sender_name: "Crypto Rewards Hub", sender_addr: "airdrop@crypto-vault-free.io", subject: "Exclusive crypto giveaway: Free money waiting in your wallet", preview: "Act now! Claim 5.0 ETH in our limited crypto giveaway. 100% free with no deposit required. Click here to verify.", date: "Yesterday, 11:10 AM", category: "Spam", why: "matched: free money" },
+      { id: "demo-msg-13", sender_name: "Frontend Weekly", sender_addr: "editorial@frontendweekly.co", subject: "Issue #412: What's new in ECMAScript and CSS Grid", preview: "Welcome to this week's newsletter. Deep dive into container queries, subgrid performance, and modern bundling tooling.", date: "Nov 21, 10:00 AM", category: "Promotions", why: "has unsubscribe link" },
+      { id: "demo-msg-14", sender_name: "Executive Office", sender_addr: "ceo-office@acmecorp.com", subject: "ACTION REQUIRED: Final notice regarding security compliance", preview: "All personnel must complete mandatory security compliance certification ASAP. Final notice before policy deactivation.", date: "Nov 21, 09:15 AM", category: "Urgent", why: "matched: action required" },
+      { id: "demo-msg-15", sender_name: "HR Operations", sender_addr: "hr-talent@partnercorp.com", subject: "Official Offer Letter - Staff Platform Engineer", preview: "We are thrilled to extend this formal offer letter to join our organization. Please confirm acceptance by signing attached.", date: "Nov 20, 04:30 PM", category: "Important", why: "matched: offer letter" },
+      { id: "demo-msg-16", sender_name: "First National Bank", sender_addr: "support@firstbank.com", subject: "Security alert: New login detected from unfamiliar device", preview: "We detected a login to your online banking from Chrome on Windows. If this was not you, trigger a password reset immediately.", date: "Nov 20, 02:15 PM", category: "Updates", why: "matched: support" },
+      { id: "demo-msg-17", sender_name: "State Lottery Promotion", sender_addr: "admin@golden-ticket-luck.xyz", subject: "National Lottery alert: You have won top prize!", preview: "Your ticket was selected as the lucky winner! Act now to claim your prize before unclaimed funds expire.", date: "Nov 19, 06:10 PM", category: "Spam", why: "matched: lottery" },
+      { id: "demo-msg-18", sender_name: "Urban Outfitters", sender_addr: "promos@styleoutfit.com", subject: "Secret Flash Sale: Unbelievable discount & coupon inside", preview: "Special discount offer just for you! Use coupon code SAVE30 at checkout. Extra 20% off all seasonal outerwear today.", date: "Nov 19, 01:05 PM", category: "Promotions", why: "has unsubscribe link" },
+      { id: "demo-msg-19", sender_name: "Dean of Student Affairs", sender_addr: "dean@university.edu", subject: "Campus Library extended hours for reading week", preview: "The main campus library will remain open 24 hours starting next Monday. Quiet study spaces and hot tea provided on floor 3.", date: "Nov 18, 11:30 AM", category: "Other", why: "no rule matched" },
+      { id: "demo-msg-20", sender_name: "Elena Rostova", sender_addr: "elena.r@bookclub.org", subject: "Book club selection for December discussion", preview: "Our chosen book for this month is Klara and the Sun. Let us gather at the community cafe on Sunday afternoon.", date: "Nov 18, 09:00 AM", category: "Other", why: "no rule matched" }
+    ];
+
     let currentMails = [];
     let toastTimer = null;
 
@@ -908,7 +933,6 @@
       document.getElementById('connect-modal').style.display = 'none';
     }
 
-    // Close modal on click outside card
     document.getElementById('connect-modal').addEventListener('click', (e) => {
       if (e.target.id === 'connect-modal') {
         closeConnectModal();
@@ -959,7 +983,7 @@
           errEl.style.display = 'block';
         }
       } catch (err) {
-        errEl.textContent = "Could not log in. Check your App Password and that IMAP is enabled.";
+        errEl.textContent = "To connect live Gmail, run the Mailboard desktop app or 'python app.py' locally.";
         errEl.style.display = 'block';
       } finally {
         submitBtn.disabled = false;
@@ -979,7 +1003,8 @@
           showError("Failed to disconnect.");
         }
       } catch (err) {
-        showError("Network error while disconnecting.");
+        showToast("Returned to demo mode.");
+        fetchMails(true);
       } finally {
         showLoading(false);
       }
@@ -990,7 +1015,7 @@
       try {
         await fetch('/api/quit', { method: 'POST' });
       } catch (err) {
-        // App is closing
+        // App closing
       }
       setTimeout(() => {
         document.body.style.opacity = '0.4';
@@ -1004,9 +1029,9 @@
       try {
         const url = forceRefresh ? '/api/mails?refresh=1' : '/api/mails';
         const res = await fetch(url);
+        if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
 
-        // Update header & badges
         const badge = document.getElementById('mode-badge');
         const connectBtn = document.getElementById('btn-connect');
         const disconnectBtn = document.getElementById('btn-disconnect');
@@ -1032,7 +1057,31 @@
         currentMails = data.mails || [];
         renderBoard(currentMails);
       } catch (err) {
-        showError("Failed to fetch emails. Check connection or server.");
+        // Fallback for static prototype hosting (GitHub Pages) or offline mode
+        const savedOverrides = JSON.parse(localStorage.getItem('mailboard_overrides') || '{}');
+        const savedSenderRules = JSON.parse(localStorage.getItem('mailboard_sender_rules') || '{}');
+
+        currentMails = FALLBACK_DEMO_EMAILS.map(m => {
+          let cat = m.category;
+          let why = m.why;
+          if (savedOverrides[m.id]) {
+            cat = savedOverrides[m.id];
+            why = "you moved it";
+          } else if (savedSenderRules[m.sender_addr]) {
+            cat = savedSenderRules[m.sender_addr];
+            why = "remembered sender";
+          }
+          return { ...m, category: cat, why: why };
+        });
+
+        const badge = document.getElementById('mode-badge');
+        badge.textContent = 'DEMO';
+        badge.className = 'mode-badge demo';
+        document.getElementById('btn-connect').style.display = 'flex';
+        document.getElementById('btn-disconnect').style.display = 'none';
+        document.getElementById('demo-banner').style.display = 'flex';
+
+        renderBoard(currentMails);
       } finally {
         showLoading(false);
       }
@@ -1056,9 +1105,8 @@
         document.getElementById(`count-${cat}`).textContent = list.length;
 
         const cardsContainer = document.getElementById(`cards-${cat}`);
-        cardsContainer.textContent = ''; // clear
+        cardsContainer.textContent = '';
 
-        // Show at most 5 cards
         const visibleMails = list.slice(0, 5);
         visibleMails.forEach(mail => {
           const cardEl = createMailCard(mail);
@@ -1075,14 +1123,12 @@
       });
     }
 
-    // Escape all email text via textContent, never innerHTML with user data
     function createMailCard(mail) {
       const card = document.createElement('div');
       card.className = 'mail-card';
       card.setAttribute('draggable', 'true');
       card.dataset.id = mail.id;
 
-      // Header row: sender and date
       const senderRow = document.createElement('div');
       senderRow.className = 'card-sender';
 
@@ -1099,13 +1145,11 @@
       }
       card.appendChild(senderRow);
 
-      // Subject
       const subjectEl = document.createElement('div');
       subjectEl.className = 'card-subject';
       subjectEl.textContent = mail.subject;
       card.appendChild(subjectEl);
 
-      // Footer: why chip + category dropdown
       const footer = document.createElement('div');
       footer.className = 'card-footer';
 
@@ -1136,7 +1180,6 @@
       footer.appendChild(select);
       card.appendChild(footer);
 
-      // HTML5 Drag Events
       card.addEventListener('dragstart', (e) => {
         card.classList.add('is-dragging');
         e.dataTransfer.effectAllowed = 'move';
@@ -1154,7 +1197,6 @@
       const targetMail = currentMails.find(m => m.id === mailId);
       const sender = senderDisplay || (targetMail ? (targetMail.sender_name || targetMail.sender_addr) : "sender");
 
-      // Optimistic update
       if (targetMail) {
         targetMail.category = targetCategory;
         targetMail.why = "you moved it";
@@ -1173,14 +1215,20 @@
           showError(result.error || "Failed to save move.");
         }
       } catch (err) {
-        showError("Network error while updating category.");
+        // Fallback for static prototype hosting
+        const overrides = JSON.parse(localStorage.getItem('mailboard_overrides') || '{}');
+        const senderRules = JSON.parse(localStorage.getItem('mailboard_sender_rules') || '{}');
+        overrides[mailId] = targetCategory;
+        if (targetMail && targetMail.sender_addr) {
+          senderRules[targetMail.sender_addr] = targetCategory;
+        }
+        localStorage.setItem('mailboard_overrides', JSON.stringify(overrides));
+        localStorage.setItem('mailboard_sender_rules', JSON.stringify(senderRules));
       }
 
-      // Re-fetch to apply sender memory across all emails
       fetchMails(false);
     }
 
-    // Set up column drag & drop listeners
     document.querySelectorAll('.column').forEach(col => {
       col.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -1208,7 +1256,6 @@
       });
     });
 
-    // Initial load
     fetchMails();
   </script>
 </body>
