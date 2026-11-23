@@ -1,0 +1,19 @@
+# Environment variables
+.env
+
+# SQLite databases
+*.db
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyInstaller build artifacts & venv
+build/
+dist/
+*.spec
+.venv/
+
+# Archives
+*.zip

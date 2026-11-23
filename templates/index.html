@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mailboard - Neo-Brutalist Inbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-weight: 700;
+      background-color: #FFF4D6;
+      background-image: radial-gradient(#1a1a1a 1.2px, transparent 1.2px);
+      background-size: 18px 18px;
+      color: #000;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+
+    /* HEADER */
+    header {
+      height: 52px;
+      min-height: 52px;
+      background-color: #FFF4D6;
+      border-bottom: 3px solid #000;
+      box-shadow: 0 4px 0 #000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo {
+      font-family: 'Lilita One', Impact, 'Arial Black', sans-serif;
+      font-size: 24px;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-shadow: 2px 2px 0 #FFF;
+    }
+
+    .mode-badge {
+      font-family: 'Lilita One', Impact, sans-serif;
+      font-size: 13px;
+      padding: 2px 10px;
+      border: 2.5px solid #000;
+      border-radius: 6px;
+      box-shadow: 2.5px 2.5px 0 #000;
+      letter-spacing: 0.5px;
+    }
+
+    .mode-badge.demo {
+      background-color: #FFE600;
+    }
+
+    .mode-badge.gmail {
+      background-color: #7BD389;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .live-count {
+      font-size: 12.5px;
+      font-weight: 800;
+      background: #FFF;
+      border: 2.5px solid #000;
+      box-shadow: 2.5px 2.5px 0 #000;
+      border-radius: 6px;
+      padding: 4px 9px;
+    }
+
+    /* BUTTONS */
+    .btn {
+      font-family: 'Lilita One', Impact, sans-serif;
+      font-size: 13px;
+      border: 2.5px solid #000;
+      border-radius: 6px;
+      padding: 4px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: transform 0.08s, box-shadow 0.08s;
+      outline: none;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translate(2px, 2px);
+    }
+
+    .connect-btn {
+      background: #FFE600;
+      box-shadow: 3px 3px 0 #000;
+    }
+
+    .connect-btn:hover {
+      box-shadow: 4px 4px 0 #000;
+      background: #FFF04D;
+    }
+
+    .connect-btn:active {
+      box-shadow: 1px 1px 0 #000;
+    }
+
+    .disconnect-btn {
+      background: #FF5A5F;
+      color: #000;
+      box-shadow: 3px 3px 0 #000;
+    }
+
+    .disconnect-btn:hover {
+      box-shadow: 4px 4px 0 #000;
+      background: #FF7579;
+    }
+
+    .disconnect-btn:active {
+      box-shadow: 1px 1px 0 #000;
+    }
+
+    .refresh-btn {
+      background: #3EC6E0;
+      box-shadow: 3px 3px 0 #000;
+    }
+
+    .refresh-btn:hover {
+      box-shadow: 4px 4px 0 #000;
+      background: #5CD2E8;
+    }
+
+    .refresh-btn:active {
+      box-shadow: 1px 1px 0 #000;
+    }
+
+    .quit-btn {
+      background: #FFF;
+      box-shadow: 3px 3px 0 #000;
+    }
+
+    .quit-btn:hover {
+      box-shadow: 4px 4px 0 #000;
+      background: #F4F4F4;
+    }
+
+    .quit-btn:active {
+      box-shadow: 1px 1px 0 #000;
+    }
+
+    /* DEMO BANNER */
+    #demo-banner {
+      margin: 6px 14px 0 14px;
+      background: #FFE600;
+      border: 2.5px solid #000;
+      box-shadow: 3.5px 3.5px 0 #000;
+      border-radius: 8px;
+      padding: 4px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 32px;
+      min-height: 32px;
+      flex-shrink: 0;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .banner-text-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .banner-pill {
+      background: #000;
+      color: #FFF;
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .banner-link-btn {
+      background: #000;
+      color: #FFF;
+      font-family: 'Lilita One', sans-serif;
+      font-size: 11.5px;
+      border: 2px solid #000;
+      border-radius: 5px;
+      padding: 2px 10px;
+      cursor: pointer;
+      transition: transform 0.08s;
+    }
+
+    .banner-link-btn:hover {
+      background: #222;
+      transform: scale(1.02);
+    }
+
+    /* ERROR BANNER */
+    #error-banner {
+      display: none;
+      background: #FF5A5F;
+      color: #000;
+      border: 3px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      border-radius: 8px;
+      margin: 6px 14px 0 14px;
+      padding: 6px 12px;
+      font-weight: 800;
+      font-size: 12.5px;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    /* BOARD GRID */
+    main#board {
+      flex: 1;
+      min-height: 0;
+      padding: 8px 14px 10px 14px;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      overflow: hidden;
+    }
+
+    /* COLUMNS */
+    .column {
+      height: 100%;
+      border: 3px solid #000;
+      box-shadow: 6px 6px 0 #000;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: transform 0.15s, outline 0.1s;
+      position: relative;
+    }
+
+    .column.drag-over {
+      outline: 4px dashed #000;
+      outline-offset: -3px;
+      filter: brightness(1.08);
+      transform: scale(1.01);
+    }
+
+    .column-header {
+      padding: 5px 9px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2.5px solid #000;
+      background: rgba(255, 255, 255, 0.28);
+      flex-shrink: 0;
+    }
+
+    .column-title {
+      font-family: 'Lilita One', Impact, sans-serif;
+      font-size: 15px;
+      letter-spacing: 0.5px;
+      color: #000;
+      text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.7);
+    }
+
+    .col-count-badge {
+      font-size: 11.5px;
+      font-weight: 900;
+      background: #FFF;
+      color: #000;
+      border: 2px solid #000;
+      border-radius: 999px;
+      padding: 0 6px;
+      min-width: 19px;
+      text-align: center;
+      box-shadow: 1.5px 1.5px 0 #000;
+    }
+
+    .column-cards {
+      flex: 1;
+      min-height: 0;
+      padding: 6px 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow: hidden;
+    }
+
+    /* CARDS */
+    .mail-card {
+      background: #FFFFFF;
+      border: 2.5px solid #000;
+      border-radius: 8px;
+      padding: 5px 7px;
+      box-shadow: 2.5px 2.5px 0 #000;
+      cursor: grab;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .mail-card:nth-child(odd) {
+      transform: rotate(-1deg);
+    }
+
+    .mail-card:nth-child(even) {
+      transform: rotate(1deg);
+    }
+
+    .mail-card:hover {
+      transform: translateY(-2px) rotate(0deg) !important;
+      box-shadow: 4.5px 4.5px 0 #000 !important;
+      z-index: 5;
+    }
+
+    .mail-card.is-dragging {
+      opacity: 0.4;
+      cursor: grabbing;
+    }
+
+    .card-sender {
+      font-size: 11px;
+      font-weight: 800;
+      color: #000;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-sender-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .card-date {
+      font-size: 9px;
+      font-weight: 700;
+      color: #555;
+      margin-left: 4px;
+      flex-shrink: 0;
+    }
+
+    .card-subject {
+      font-size: 10.5px;
+      line-height: 1.25;
+      font-weight: 700;
+      color: #111;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      margin-top: 1px;
+    }
+
+    .why-chip {
+      font-size: 8.5px;
+      font-weight: 800;
+      background: #000;
+      color: #FFF;
+      border-radius: 4px;
+      padding: 1px 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 58%;
+      box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    .move-select {
+      font-family: 'Nunito', sans-serif;
+      font-size: 9px;
+      font-weight: 800;
+      background: #FFF;
+      color: #000;
+      border: 1.5px solid #000;
+      border-radius: 4px;
+      padding: 1px 2px;
+      cursor: pointer;
+      max-width: 42%;
+      outline: none;
+    }
+
+    .move-select:hover {
+      background: #FFFAEE;
+    }
+
+    /* MORE PILL */
+    .more-pill {
+      margin: 2px 6px 4px 6px;
+      background: #000;
+      color: #FFF;
+      border: 2px solid #000;
+      border-radius: 999px;
+      font-size: 9.5px;
+      font-weight: 800;
+      text-align: center;
+      padding: 2px 0;
+      box-shadow: 2px 2px 0 #FFF;
+      flex-shrink: 0;
+    }
+
+    /* TOAST */
+    #toast {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%) translateY(90px);
+      opacity: 0;
+      pointer-events: none;
+      background: #FFF;
+      color: #000;
+      border: 3px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 800;
+      z-index: 1000;
+      transition: transform 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
+      white-space: nowrap;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* LOADING OVERLAY */
+    #loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(255, 244, 214, 0.88);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .bouncing-envelope {
+      font-size: 54px;
+      animation: envelope-bounce 0.55s infinite alternate ease-in-out;
+    }
+
+    @keyframes envelope-bounce {
+      0% {
+        transform: translateY(0) scale(1);
+      }
+      100% {
+        transform: translateY(-22px) scale(1.08);
+      }
+    }
+
+    .loading-text {
+      font-family: 'Lilita One', Impact, sans-serif;
+      font-size: 20px;
+      background: #FFF;
+      border: 3px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      border-radius: 8px;
+      padding: 6px 16px;
+    }
+
+    /* CONNECT MODAL */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-card {
+      background: #FFF4D6;
+      border: 3.5px solid #000;
+      box-shadow: 8px 8px 0 #000;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 520px;
+      padding: 22px 24px;
+      position: relative;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .modal-title {
+      font-family: 'Lilita One', Impact, sans-serif;
+      font-size: 22px;
+      letter-spacing: 0.5px;
+    }
+
+    .modal-close-btn {
+      background: #FF5A5F;
+      border: 2.5px solid #000;
+      box-shadow: 2.5px 2.5px 0 #000;
+      border-radius: 6px;
+      width: 30px;
+      height: 30px;
+      font-size: 14px;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.08s;
+    }
+
+    .modal-close-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .modal-close-btn:active {
+      transform: translate(1px, 1px);
+    }
+
+    .steps-box {
+      background: #FFF;
+      border: 2.5px solid #000;
+      box-shadow: 3px 3px 0 #000;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 12.5px;
+      line-height: 1.4;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .step-num {
+      background: #FFE600;
+      border: 1.5px solid #000;
+      border-radius: 4px;
+      font-weight: 900;
+      font-size: 11px;
+      padding: 1px 6px;
+      flex-shrink: 0;
+    }
+
+    .step-item a {
+      color: #000;
+      text-decoration: underline;
+      font-weight: 800;
+    }
+
+    .step-item a:hover {
+      background: #FFF04D;
+    }
+
+    .modal-error {
+      background: #FF5A5F;
+      border: 2.5px solid #000;
+      box-shadow: 3px 3px 0 #000;
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+
+    .form-group label {
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .form-group input {
+      font-family: 'Nunito', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      border: 2.5px solid #000;
+      border-radius: 6px;
+      box-shadow: 2px 2px 0 #000;
+      padding: 7px 10px;
+      outline: none;
+      background: #FFF;
+    }
+
+    .form-group input:focus {
+      background: #FFFAEE;
+      box-shadow: 3px 3px 0 #000;
+    }
+
+    .field-hint {
+      font-size: 10.5px;
+      color: #555;
+      font-weight: 700;
+    }
+
+    .modal-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .modal-cancel-btn {
+      font-family: 'Lilita One', sans-serif;
+      font-size: 13px;
+      background: #FFF;
+      border: 2.5px solid #000;
+      box-shadow: 2.5px 2.5px 0 #000;
+      border-radius: 6px;
+      padding: 6px 14px;
+      cursor: pointer;
+    }
+
+    .modal-submit-btn {
+      font-family: 'Lilita One', sans-serif;
+      font-size: 14px;
+      background: #7BD389;
+      border: 2.5px solid #000;
+      box-shadow: 3px 3px 0 #000;
+      border-radius: 6px;
+      padding: 6px 18px;
+      cursor: pointer;
+    }
+
+    .modal-submit-btn:hover {
+      box-shadow: 4px 4px 0 #000;
+      background: #90E09D;
+    }
+
+    .modal-submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Column Specific Theme Colors */
+    .col-urgent { background-color: #FF5A5F; }
+    .col-important { background-color: #FFB400; }
+    .col-updates { background-color: #3EC6E0; }
+    .col-promotions { background-color: #FF8FB1; }
+    .col-spam { background-color: #A0A8B8; }
+    .col-other { background-color: #7BD389; }
+  </style>
+</head>
+<body>
+
+  <!-- Slim Header -->
+  <header>
+    <div class="header-left">
+      <div class="logo">
+        <span>✉️</span> Mailboard
+      </div>
+      <div id="mode-badge" class="mode-badge demo">DEMO</div>
+    </div>
+    <div class="header-right">
+      <div id="live-count" class="live-count">0 mails sorted</div>
+      <!-- Connect Gmail (shown in demo mode) -->
+      <button id="btn-connect" class="btn connect-btn" onclick="openConnectModal()">
+        ⚡ Connect Gmail
+      </button>
+      <!-- Disconnect (shown when connected) -->
+      <button id="btn-disconnect" class="btn disconnect-btn" onclick="disconnectGmail()" style="display: none;">
+        🔌 Disconnect
+      </button>
+      <!-- Refresh -->
+      <button id="refresh-btn" class="btn refresh-btn" onclick="fetchMails(true)">
+        🔄 Refresh
+      </button>
+      <!-- Quit -->
+      <button id="btn-quit" class="btn quit-btn" onclick="quitApp()">
+        ✖ Quit
+      </button>
+    </div>
+  </header>
+
+  <!-- Demo Banner (shown when in DEMO mode) -->
+  <div id="demo-banner">
+    <div class="banner-text-group">
+      <span class="banner-pill">DEMO PREVIEW</span>
+      <span>Viewing 20 realistic sample emails. Connect your Gmail to sort your real inbox!</span>
+    </div>
+    <button class="banner-link-btn" onclick="openConnectModal()">Connect Gmail →</button>
+  </div>
+
+  <!-- Error Banner -->
+  <div id="error-banner">
+    <span id="error-message"></span>
+  </div>
+
+  <!-- Board Grid with 6 Columns -->
+  <main id="board">
+    <!-- Urgent -->
+    <div class="column col-urgent" data-category="Urgent">
+      <div class="column-header">
+        <span class="column-title">Urgent</span>
+        <span class="col-count-badge" id="count-Urgent">0</span>
+      </div>
+      <div class="column-cards" id="cards-Urgent"></div>
+      <div class="more-pill" id="more-Urgent" style="display: none;"></div>
+    </div>
+
+    <!-- Important -->
+    <div class="column col-important" data-category="Important">
+      <div class="column-header">
+        <span class="column-title">Important</span>
+        <span class="col-count-badge" id="count-Important">0</span>
+      </div>
+      <div class="column-cards" id="cards-Important"></div>
+      <div class="more-pill" id="more-Important" style="display: none;"></div>
+    </div>
+
+    <!-- Updates -->
+    <div class="column col-updates" data-category="Updates">
+      <div class="column-header">
+        <span class="column-title">Updates</span>
+        <span class="col-count-badge" id="count-Updates">0</span>
+      </div>
+      <div class="column-cards" id="cards-Updates"></div>
+      <div class="more-pill" id="more-Updates" style="display: none;"></div>
+    </div>
+
+    <!-- Promotions -->
+    <div class="column col-promotions" data-category="Promotions">
+      <div class="column-header">
+        <span class="column-title">Promotions</span>
+        <span class="col-count-badge" id="count-Promotions">0</span>
+      </div>
+      <div class="column-cards" id="cards-Promotions"></div>
+      <div class="more-pill" id="more-Promotions" style="display: none;"></div>
+    </div>
+
+    <!-- Spam -->
+    <div class="column col-spam" data-category="Spam">
+      <div class="column-header">
+        <span class="column-title">Spam</span>
+        <span class="col-count-badge" id="count-Spam">0</span>
+      </div>
+      <div class="column-cards" id="cards-Spam"></div>
+      <div class="more-pill" id="more-Spam" style="display: none;"></div>
+    </div>
+
+    <!-- Other -->
+    <div class="column col-other" data-category="Other">
+      <div class="column-header">
+        <span class="column-title">Other</span>
+        <span class="col-count-badge" id="count-Other">0</span>
+      </div>
+      <div class="column-cards" id="cards-Other"></div>
+      <div class="more-pill" id="more-Other" style="display: none;"></div>
+    </div>
+  </main>
+
+  <!-- Connect Gmail Modal -->
+  <div id="connect-modal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">Connect Gmail</h2>
+        <button class="modal-close-btn" onclick="closeConnectModal()">✖</button>
+      </div>
+
+      <div class="steps-box">
+        <div class="step-item">
+          <span class="step-num">1</span>
+          <span>Turn on 2-Step Verification: <a href="https://myaccount.google.com/security" target="_blank" rel="noopener">myaccount.google.com/security</a></span>
+        </div>
+        <div class="step-item">
+          <span class="step-num">2</span>
+          <span>Create an App Password: <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener">myaccount.google.com/apppasswords</a></span>
+        </div>
+        <div class="step-item">
+          <span class="step-num">3</span>
+          <span>Enter your Gmail address and the 16-character password:</span>
+        </div>
+      </div>
+
+      <div id="modal-error" class="modal-error" style="display: none;"></div>
+
+      <form id="connect-form" onsubmit="handleConnectSubmit(event)">
+        <div class="form-group">
+          <label for="connect-address">Gmail Address</label>
+          <input type="email" id="connect-address" placeholder="name@gmail.com" required autocomplete="email" />
+        </div>
+
+        <div class="form-group">
+          <label for="connect-password">App Password (16 characters)</label>
+          <input type="password" id="connect-password" placeholder="xxxx xxxx xxxx xxxx" required autocomplete="current-password" />
+          <span class="field-hint">Spaces are stripped automatically. Credentials are saved safely in Windows Credential Manager.</span>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="modal-cancel-btn" onclick="closeConnectModal()">Cancel</button>
+          <button type="submit" id="btn-submit-connect" class="modal-submit-btn">Connect</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Bottom Toast -->
+  <div id="toast"></div>
+
+  <!-- Loading State -->
+  <div id="loading-overlay">
+    <div class="bouncing-envelope">✉️</div>
+    <div class="loading-text">Sorting Inbox...</div>
+  </div>
+
+  <script>
+    const CATEGORIES = ["Urgent", "Important", "Updates", "Promotions", "Spam", "Other"];
+    let currentMails = [];
+    let toastTimer = null;
+
+    function showLoading(show) {
+      document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+    }
+
+    function showError(msg) {
+      const banner = document.getElementById('error-banner');
+      const errText = document.getElementById('error-message');
+      if (msg) {
+        errText.textContent = msg;
+        banner.style.display = 'flex';
+      } else {
+        banner.style.display = 'none';
+      }
+    }
+
+    function showToast(text) {
+      const toast = document.getElementById('toast');
+      toast.textContent = text;
+      toast.classList.add('show');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    function openConnectModal() {
+      const modal = document.getElementById('connect-modal');
+      const errEl = document.getElementById('modal-error');
+      errEl.style.display = 'none';
+      errEl.textContent = '';
+      modal.style.display = 'flex';
+      document.getElementById('connect-address').focus();
+    }
+
+    function closeConnectModal() {
+      document.getElementById('connect-modal').style.display = 'none';
+    }
+
+    // Close modal on click outside card
+    document.getElementById('connect-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'connect-modal') {
+        closeConnectModal();
+      }
+    });
+
+    async function handleConnectSubmit(e) {
+      e.preventDefault();
+      const addrInput = document.getElementById('connect-address');
+      const passInput = document.getElementById('connect-password');
+      const errEl = document.getElementById('modal-error');
+      const submitBtn = document.getElementById('btn-submit-connect');
+
+      const address = addrInput.value.trim().toLowerCase();
+      const password = passInput.value.replace(/\s+/g, '').trim();
+
+      if (!address.endsWith('@gmail.com') && !address.endsWith('@googlemail.com')) {
+        errEl.textContent = "Please enter an @gmail.com or @googlemail.com address.";
+        errEl.style.display = 'block';
+        return;
+      }
+
+      if (!password) {
+        errEl.textContent = "Please enter your 16-character App Password.";
+        errEl.style.display = 'block';
+        return;
+      }
+
+      errEl.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Testing Connection...";
+
+      try {
+        const res = await fetch('/api/connect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address, password })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          closeConnectModal();
+          showToast("Gmail connected successfully!");
+          addrInput.value = '';
+          passInput.value = '';
+          fetchMails(true);
+        } else {
+          errEl.textContent = data.error || "Could not log in. Check your App Password and that IMAP is enabled.";
+          errEl.style.display = 'block';
+        }
+      } catch (err) {
+        errEl.textContent = "Could not log in. Check your App Password and that IMAP is enabled.";
+        errEl.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Connect";
+      }
+    }
+
+    async function disconnectGmail() {
+      showLoading(true);
+      try {
+        const res = await fetch('/api/disconnect', { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          showToast("Disconnected from Gmail. Returned to demo mode.");
+          fetchMails(true);
+        } else {
+          showError("Failed to disconnect.");
+        }
+      } catch (err) {
+        showError("Network error while disconnecting.");
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    async function quitApp() {
+      showToast("Mailboard closed. You can close this tab.");
+      try {
+        await fetch('/api/quit', { method: 'POST' });
+      } catch (err) {
+        // App is closing
+      }
+      setTimeout(() => {
+        document.body.style.opacity = '0.4';
+        document.body.style.pointerEvents = 'none';
+      }, 400);
+    }
+
+    async function fetchMails(forceRefresh = false) {
+      showLoading(true);
+      showError(null);
+      try {
+        const url = forceRefresh ? '/api/mails?refresh=1' : '/api/mails';
+        const res = await fetch(url);
+        const data = await res.json();
+
+        // Update header & badges
+        const badge = document.getElementById('mode-badge');
+        const connectBtn = document.getElementById('btn-connect');
+        const disconnectBtn = document.getElementById('btn-disconnect');
+        const demoBanner = document.getElementById('demo-banner');
+
+        badge.textContent = data.mode;
+        badge.className = 'mode-badge ' + (data.mode === 'GMAIL' ? 'gmail' : 'demo');
+
+        if (data.mode === 'GMAIL') {
+          connectBtn.style.display = 'none';
+          disconnectBtn.style.display = 'flex';
+          demoBanner.style.display = 'none';
+        } else {
+          connectBtn.style.display = 'flex';
+          disconnectBtn.style.display = 'none';
+          demoBanner.style.display = 'flex';
+        }
+
+        if (data.error) {
+          showError(data.error);
+        }
+
+        currentMails = data.mails || [];
+        renderBoard(currentMails);
+      } catch (err) {
+        showError("Failed to fetch emails. Check connection or server.");
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function renderBoard(mails) {
+      document.getElementById('live-count').textContent = `${mails.length} mails sorted`;
+
+      const groups = {};
+      CATEGORIES.forEach(cat => groups[cat] = []);
+      mails.forEach(mail => {
+        if (groups[mail.category]) {
+          groups[mail.category].push(mail);
+        } else {
+          groups["Other"].push(mail);
+        }
+      });
+
+      CATEGORIES.forEach(cat => {
+        const list = groups[cat];
+        document.getElementById(`count-${cat}`).textContent = list.length;
+
+        const cardsContainer = document.getElementById(`cards-${cat}`);
+        cardsContainer.textContent = ''; // clear
+
+        // Show at most 5 cards
+        const visibleMails = list.slice(0, 5);
+        visibleMails.forEach(mail => {
+          const cardEl = createMailCard(mail);
+          cardsContainer.appendChild(cardEl);
+        });
+
+        const morePill = document.getElementById(`more-${cat}`);
+        if (list.length > 5) {
+          morePill.textContent = `+${list.length - 5} more`;
+          morePill.style.display = 'block';
+        } else {
+          morePill.style.display = 'none';
+        }
+      });
+    }
+
+    // Escape all email text via textContent, never innerHTML with user data
+    function createMailCard(mail) {
+      const card = document.createElement('div');
+      card.className = 'mail-card';
+      card.setAttribute('draggable', 'true');
+      card.dataset.id = mail.id;
+
+      // Header row: sender and date
+      const senderRow = document.createElement('div');
+      senderRow.className = 'card-sender';
+
+      const senderName = document.createElement('span');
+      senderName.className = 'card-sender-name';
+      senderName.textContent = mail.sender_name || mail.sender_addr;
+      senderRow.appendChild(senderName);
+
+      if (mail.date) {
+        const dateSpan = document.createElement('span');
+        dateSpan.className = 'card-date';
+        dateSpan.textContent = mail.date;
+        senderRow.appendChild(dateSpan);
+      }
+      card.appendChild(senderRow);
+
+      // Subject
+      const subjectEl = document.createElement('div');
+      subjectEl.className = 'card-subject';
+      subjectEl.textContent = mail.subject;
+      card.appendChild(subjectEl);
+
+      // Footer: why chip + category dropdown
+      const footer = document.createElement('div');
+      footer.className = 'card-footer';
+
+      const whyChip = document.createElement('span');
+      whyChip.className = 'why-chip';
+      whyChip.textContent = mail.why;
+      whyChip.title = mail.why;
+      footer.appendChild(whyChip);
+
+      const select = document.createElement('select');
+      select.className = 'move-select';
+      CATEGORIES.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        if (c === mail.category) opt.selected = true;
+        select.appendChild(opt);
+      });
+
+      select.addEventListener('change', (e) => {
+        e.stopPropagation();
+        const targetCat = select.value;
+        if (targetCat !== mail.category) {
+          moveEmail(mail.id, targetCat, mail.sender_name || mail.sender_addr);
+        }
+      });
+
+      footer.appendChild(select);
+      card.appendChild(footer);
+
+      // HTML5 Drag Events
+      card.addEventListener('dragstart', (e) => {
+        card.classList.add('is-dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', mail.id);
+      });
+
+      card.addEventListener('dragend', () => {
+        card.classList.remove('is-dragging');
+      });
+
+      return card;
+    }
+
+    async function moveEmail(mailId, targetCategory, senderDisplay) {
+      const targetMail = currentMails.find(m => m.id === mailId);
+      const sender = senderDisplay || (targetMail ? (targetMail.sender_name || targetMail.sender_addr) : "sender");
+
+      // Optimistic update
+      if (targetMail) {
+        targetMail.category = targetCategory;
+        targetMail.why = "you moved it";
+      }
+
+      showToast(`Moved to ${targetCategory}. Future mail from ${sender} will go there too.`);
+
+      try {
+        const res = await fetch('/api/move', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: mailId, category: targetCategory })
+        });
+        const result = await res.json();
+        if (!result.ok) {
+          showError(result.error || "Failed to save move.");
+        }
+      } catch (err) {
+        showError("Network error while updating category.");
+      }
+
+      // Re-fetch to apply sender memory across all emails
+      fetchMails(false);
+    }
+
+    // Set up column drag & drop listeners
+    document.querySelectorAll('.column').forEach(col => {
+      col.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        col.classList.add('drag-over');
+      });
+
+      col.addEventListener('dragleave', (e) => {
+        if (!col.contains(e.relatedTarget)) {
+          col.classList.remove('drag-over');
+        }
+      });
+
+      col.addEventListener('drop', (e) => {
+        e.preventDefault();
+        col.classList.remove('drag-over');
+        const mailId = e.dataTransfer.getData('text/plain');
+        const targetCategory = col.dataset.category;
+        if (mailId && targetCategory) {
+          const currentMail = currentMails.find(m => m.id === mailId);
+          if (currentMail && currentMail.category !== targetCategory) {
+            moveEmail(mailId, targetCategory, currentMail.sender_name || currentMail.sender_addr);
+          }
+        }
+      });
+    });
+
+    // Initial load
+    fetchMails();
+  </script>
+</body>
+</html>
