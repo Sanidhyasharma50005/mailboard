@@ -35,13 +35,18 @@ def resource_path(relative_path):
         base_path = os.path.abspath(os.path.dirname(__file__))
     return os.path.join(base_path, relative_path)
 
+IS_VERCEL = bool(os.getenv("VERCEL") or os.getenv("VERCEL_ENV"))
+
 def get_data_dir():
-    """Store database and logs in %APPDATA%\\Mailboard (fallback ~/.mailboard)"""
-    appdata = os.getenv("APPDATA")
-    if appdata:
-        data_dir = Path(appdata) / "Mailboard"
+    """Store database and logs in /tmp/mailboard on Vercel, or %APPDATA%\\Mailboard locally"""
+    if IS_VERCEL:
+        data_dir = Path("/tmp/mailboard")
     else:
-        data_dir = Path.home() / ".mailboard"
+        appdata = os.getenv("APPDATA")
+        if appdata:
+            data_dir = Path(appdata) / "Mailboard"
+        else:
+            data_dir = Path.home() / ".mailboard"
     data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir
 
@@ -60,16 +65,25 @@ if sys.stdout is None or sys.stderr is None:
     except Exception:
         pass
 
-logging.basicConfig(
-    filename=str(LOG_PATH),
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s"
-)
+if IS_VERCEL:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s"
+    )
+else:
+    logging.basicConfig(
+        filename=str(LOG_PATH),
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s"
+    )
 
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, session
 
 template_folder = resource_path("templates")
 app = Flask(__name__, template_folder=template_folder)
+app.secret_key = os.getenv("FLASK_SECRET_KEY") or "mailboard-secret-key-2026"
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 CATEGORIES = ["Urgent", "Important", "Updates", "Promotions", "Spam", "Other"]
 
@@ -108,11 +122,20 @@ session_disconnected = False
 
 def get_saved_credentials():
     global session_disconnected
-    if session_disconnected:
+    if session_disconnected and not IS_VERCEL:
         return None, None
 
-    # 1. Check Windows Credential Manager via keyring
-    if keyring:
+    # 0. Web / Vercel session cookie credentials
+    try:
+        sess_addr = session.get("gmail_addr")
+        sess_pass = session.get("gmail_pass")
+        if sess_addr and sess_pass:
+            return sess_addr, sess_pass
+    except RuntimeError:
+        pass
+
+    # 1. Check Windows Credential Manager via keyring (local desktop only)
+    if keyring and not IS_VERCEL:
         try:
             active_addr = keyring.get_password("Mailboard", "active_address")
             if active_addr:
@@ -133,7 +156,12 @@ def get_saved_credentials():
 def save_credentials(address, password):
     global session_disconnected
     session_disconnected = False
-    if keyring:
+    try:
+        session["gmail_addr"] = address
+        session["gmail_pass"] = password
+    except RuntimeError:
+        pass
+    if keyring and not IS_VERCEL:
         try:
             keyring.set_password("Mailboard", "active_address", address)
             keyring.set_password("Mailboard", address, password)
@@ -141,12 +169,17 @@ def save_credentials(address, password):
         except Exception as e:
             logging.error("Keyring save error: %s", type(e).__name__)
             return False
-    return False
+    return True
 
 def delete_credentials():
     global session_disconnected
     session_disconnected = True
-    if keyring:
+    try:
+        session.pop("gmail_addr", None)
+        session.pop("gmail_pass", None)
+    except RuntimeError:
+        pass
+    if keyring and not IS_VERCEL:
         try:
             active_addr = keyring.get_password("Mailboard", "active_address")
             if active_addr:
@@ -176,9 +209,38 @@ def init_db():
                 category TEXT NOT NULL
             )
         """)
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS custom_mails (
+                id TEXT PRIMARY KEY,
+                sender_name TEXT NOT NULL,
+                sender_addr TEXT NOT NULL,
+                subject TEXT NOT NULL,
+                preview TEXT NOT NULL,
+                date TEXT NOT NULL,
+                has_unsubscribe INTEGER NOT NULL DEFAULT 0
+            )
+        """)
         conn.commit()
 
 init_db()
+
+def get_custom_mails():
+    with sqlite3.connect(DB_PATH) as conn:
+        c = conn.cursor()
+        c.execute("SELECT id, sender_name, sender_addr, subject, preview, date, has_unsubscribe FROM custom_mails ORDER BY rowid DESC")
+        rows = c.fetchall()
+    return [
+        {
+            "id": row[0],
+            "sender_name": row[1],
+            "sender_addr": row[2],
+            "subject": row[3],
+            "preview": row[4],
+            "date": row[5],
+            "has_unsubscribe": bool(row[6]),
+        }
+        for row in rows
+    ]
 
 def get_db_rules():
     with sqlite3.connect(DB_PATH) as conn:
@@ -556,7 +618,8 @@ def csrf_protect_post_routes():
         if origin:
             parsed = urllib.parse.urlparse(origin)
             host = (parsed.hostname or "").lower()
-            if host not in ("127.0.0.1", "localhost"):
+            request_host = (request.host or "").split(":")[0].lower()
+            if host not in ("127.0.0.1", "localhost", request_host):
                 logging.warning("Blocked POST request with foreign origin: %s", origin)
                 return jsonify({"error": "Forbidden - invalid origin"}), 403
 
@@ -638,24 +701,29 @@ def api_mails():
     gmail_addr, gmail_pass = get_saved_credentials()
     mode = "GMAIL" if (gmail_addr and gmail_pass) else "DEMO"
 
-    if not refresh and (now - email_cache["timestamp"] < 60) and email_cache["raw_mails"] and (email_cache["mode"] == mode):
-        raw_mails = email_cache["raw_mails"]
-        error = email_cache["error"]
-    else:
-        if mode == "GMAIL":
+    if mode == "GMAIL":
+        if not IS_VERCEL and not refresh and (now - email_cache["timestamp"] < 60) and email_cache["raw_mails"] and (email_cache["mode"] == mode):
+            raw_mails = email_cache["raw_mails"]
+            error = email_cache["error"]
+        else:
             fetched_mails, err = fetch_gmail_emails(gmail_addr, gmail_pass)
             if err:
-                email_cache["timestamp"] = now
-                email_cache["raw_mails"] = []
-                email_cache["mode"] = mode
-                email_cache["error"] = err
+                if not IS_VERCEL:
+                    email_cache["timestamp"] = now
+                    email_cache["raw_mails"] = []
+                    email_cache["mode"] = mode
+                    email_cache["error"] = err
                 return jsonify({"mode": mode, "error": err, "mails": []})
             raw_mails = fetched_mails
             error = None
-        else:
-            raw_mails = get_demo_emails()
-            error = None
-
+            if not IS_VERCEL:
+                email_cache["timestamp"] = now
+                email_cache["raw_mails"] = raw_mails
+                email_cache["mode"] = mode
+                email_cache["error"] = error
+    else:
+        raw_mails = get_custom_mails() + get_demo_emails()
+        error = None
         email_cache["timestamp"] = now
         email_cache["raw_mails"] = raw_mails
         email_cache["mode"] = mode
@@ -682,6 +750,59 @@ def api_mails():
         "mails": classified_mails
     })
 
+@app.route("/api/classify", methods=["POST"])
+def api_classify():
+    data = request.get_json(silent=True) or {}
+    sender_name = str(data.get("sender_name", "")).strip()
+    sender_addr = str(data.get("sender_addr", "")).strip().lower()
+    subject = str(data.get("subject", "")).strip()
+    preview = str(data.get("preview", "")).strip()
+    has_unsubscribe = bool(data.get("has_unsubscribe", False))
+
+    if not subject and not preview:
+        return jsonify({"ok": False, "error": "Please enter a subject or body preview."}), 400
+
+    if not sender_addr:
+        sender_addr = "sender@example.com"
+    if not sender_name:
+        sender_name = sender_addr.split("@")[0] or "Unknown"
+
+    mail_id = f"custom-{int(time.time() * 1000)}"
+    mail_obj = {
+        "id": mail_id,
+        "sender_name": sender_name,
+        "sender_addr": sender_addr,
+        "subject": subject or "(No Subject)",
+        "preview": preview[:120],
+        "date": "Just now",
+        "has_unsubscribe": has_unsubscribe,
+    }
+
+    with sqlite3.connect(DB_PATH) as conn:
+        c = conn.cursor()
+        c.execute(
+            "INSERT OR REPLACE INTO custom_mails (id, sender_name, sender_addr, subject, preview, date, has_unsubscribe) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (mail_obj["id"], mail_obj["sender_name"], mail_obj["sender_addr"], mail_obj["subject"], mail_obj["preview"], mail_obj["date"], int(has_unsubscribe)),
+        )
+        conn.commit()
+
+    overrides, sender_rules = get_db_rules()
+    cat, why = classify_email(mail_obj, overrides, sender_rules)
+
+    return jsonify({
+        "ok": True,
+        "mail": {
+            "id": mail_obj["id"],
+            "sender_name": mail_obj["sender_name"],
+            "sender_addr": mail_obj["sender_addr"],
+            "subject": mail_obj["subject"],
+            "preview": mail_obj["preview"],
+            "date": mail_obj["date"],
+            "category": cat,
+            "why": why,
+        }
+    })
+
 @app.route("/api/move", methods=["POST"])
 def api_move():
     data = request.get_json(silent=True) or {}
@@ -693,7 +814,7 @@ def api_move():
 
     known_mail = next((m for m in email_cache.get("raw_mails", []) if m["id"] == mail_id), None)
     if not known_mail:
-        known_mail = next((m for m in get_demo_emails() if m["id"] == mail_id), None)
+        known_mail = next((m for m in (get_custom_mails() + get_demo_emails()) if m["id"] == mail_id), None)
 
     if not known_mail:
         return jsonify({"error": "Unknown email id"}), 404

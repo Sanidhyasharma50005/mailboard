@@ -694,6 +694,48 @@
       cursor: not-allowed;
     }
 
+    .classify-btn {
+      background-color: #FFE600;
+      box-shadow: 2.5px 2.5px 0 #000;
+    }
+
+    .classify-btn:hover {
+      box-shadow: 3.5px 3.5px 0 #000;
+    }
+
+    .form-group textarea {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+      font-size: 13.5px;
+      padding: 8px 10px;
+      border: 2.5px solid #000;
+      border-radius: 6px;
+      outline: none;
+      background: #FFF;
+      resize: vertical;
+      min-height: 68px;
+    }
+
+    .form-group textarea:focus {
+      box-shadow: 3px 3px 0 #000;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .checkbox-row input {
+      width: 16px;
+      height: 16px;
+      accent-color: #000;
+      cursor: pointer;
+    }
+
     /* Column Specific Theme Colors */
     .col-urgent { background-color: #FF5A5F; }
     .col-important { background-color: #FFB400; }
@@ -715,6 +757,10 @@
     </div>
     <div class="header-right">
       <div id="live-count" class="live-count">0 mails sorted</div>
+      <!-- Classify custom email -->
+      <button id="btn-classify" class="btn classify-btn" onclick="openClassifyModal()">
+        ✉️ Classify Email
+      </button>
       <!-- Connect Gmail (shown in demo mode) -->
       <button id="btn-connect" class="btn connect-btn" onclick="openConnectModal()">
         ⚡ Connect Gmail
@@ -856,6 +902,50 @@
     </div>
   </div>
 
+  <!-- Classify Custom Email Modal -->
+  <div id="classify-modal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">Classify Email</h2>
+        <button class="modal-close-btn" onclick="closeClassifyModal()">✖</button>
+      </div>
+
+      <div id="classify-error" class="modal-error" style="display: none;"></div>
+
+      <form id="classify-form" onsubmit="handleClassifySubmit(event)">
+        <div class="form-group">
+          <label for="cls-sender-name">Sender Name (optional)</label>
+          <input type="text" id="cls-sender-name" placeholder="e.g. Cloud Billing" />
+        </div>
+
+        <div class="form-group">
+          <label for="cls-sender-addr">Sender Email</label>
+          <input type="email" id="cls-sender-addr" placeholder="e.g. billing@company.com" required />
+        </div>
+
+        <div class="form-group">
+          <label for="cls-subject">Subject</label>
+          <input type="text" id="cls-subject" placeholder="e.g. Invoice #1042 Payment Due" required />
+        </div>
+
+        <div class="form-group">
+          <label for="cls-preview">Body / Preview</label>
+          <textarea id="cls-preview" placeholder="Paste email content here to test classification..."></textarea>
+        </div>
+
+        <label class="checkbox-row">
+          <input type="checkbox" id="cls-unsub" />
+          <span>Includes List-Unsubscribe header</span>
+        </label>
+
+        <div class="modal-actions">
+          <button type="button" class="modal-cancel-btn" onclick="closeClassifyModal()">Cancel</button>
+          <button type="submit" id="btn-submit-classify" class="modal-submit-btn">Classify &amp; Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Bottom Toast -->
   <div id="toast"></div>
 
@@ -938,6 +1028,76 @@
         closeConnectModal();
       }
     });
+
+    function openClassifyModal() {
+      const modal = document.getElementById('classify-modal');
+      const errEl = document.getElementById('classify-error');
+      errEl.style.display = 'none';
+      errEl.textContent = '';
+      modal.style.display = 'flex';
+      document.getElementById('cls-sender-addr').focus();
+    }
+
+    function closeClassifyModal() {
+      document.getElementById('classify-modal').style.display = 'none';
+    }
+
+    document.getElementById('classify-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'classify-modal') {
+        closeClassifyModal();
+      }
+    });
+
+    async function handleClassifySubmit(e) {
+      e.preventDefault();
+      const senderName = document.getElementById('cls-sender-name').value.trim();
+      const senderAddr = document.getElementById('cls-sender-addr').value.trim().toLowerCase();
+      const subject = document.getElementById('cls-subject').value.trim();
+      const preview = document.getElementById('cls-preview').value.trim();
+      const hasUnsub = document.getElementById('cls-unsub').checked;
+      const errEl = document.getElementById('classify-error');
+      const submitBtn = document.getElementById('btn-submit-classify');
+
+      errEl.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Classifying...';
+
+      try {
+        const res = await fetch('/api/classify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sender_name: senderName,
+            sender_addr: senderAddr,
+            subject: subject,
+            preview: preview,
+            has_unsubscribe: hasUnsub
+          })
+        });
+        const data = await res.json();
+        if (data.ok && data.mail) {
+          closeClassifyModal();
+          document.getElementById('classify-form').reset();
+          showToast(`Classified as ${data.mail.category} (${data.mail.why})`);
+          fetchMails(false);
+        } else {
+          errEl.textContent = data.error || 'Could not classify email.';
+          errEl.style.display = 'block';
+        }
+      } catch (err) {
+        errEl.textContent = 'Failed to reach classification server.';
+        errEl.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Classify & Add';
+      }
+    }
+
+    // Hide Quit button when hosted on a web server (e.g. Vercel)
+    if (window.location.hostname !== '127.0.0.1' && window.location.hostname !== 'localhost') {
+      const quitBtn = document.getElementById('btn-quit');
+      if (quitBtn) quitBtn.style.display = 'none';
+    }
 
     async function handleConnectSubmit(e) {
       e.preventDefault();
